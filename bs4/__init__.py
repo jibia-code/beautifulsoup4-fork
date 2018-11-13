@@ -123,9 +123,6 @@ class BeautifulSoup(Tag):
         Beautiful Soup 4 and there's no need to actually pass keyword
         arguments into the constructor.
         """
-
-        print(f"TESTING IF PIP UPDATES PROPERLY")
-        
         if 'convertEntities' in kwargs:
             warnings.warn(
                 "BS4 does not respect the convertEntities argument to the "
