@@ -2,6 +2,11 @@ Beautiful Soup is a library that makes it easy to scrape information
 from web pages. It sits atop an HTML or XML parser, providing Pythonic
 idioms for iterating, searching, and modifying the parse tree.
 
+# Differences
+This is an extension of the original BS4 v4.6.3 that extends the Tag object
+with `startPosition` and `endPosition` attributes, that will return the string indices where the underlying parser begins and ends with parsing the tag.
+The goal is to replicate the extension made in [this repository](https://github.com/tvogels/jsoup).
+
 # Quick start
 
 ```
