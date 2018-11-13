@@ -124,6 +124,8 @@ class BeautifulSoup(Tag):
         arguments into the constructor.
         """
 
+        print(f"TESTING IF PIP UPDATES PROPERLY")
+        
         if 'convertEntities' in kwargs:
             warnings.warn(
                 "BS4 does not respect the convertEntities argument to the "
