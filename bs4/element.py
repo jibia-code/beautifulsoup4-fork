@@ -4,7 +4,7 @@ __license__ = "MIT"
 
 try:
     from collections.abc import Callable # Python 3.6
-except ImportError , e:
+except ImportError as e:
     from collections import Callable
 import re
 import shlex
@@ -775,7 +775,7 @@ class NavigableString(unicode, PageElement):
             u = unicode.__new__(cls, value, DEFAULT_OUTPUT_ENCODING)
         u.setup()
         return u
-
+    
     def __copy__(self):
         """A copy of a NavigableString has the same contents and class
         as the original, but it is not connected to the parse tree.
@@ -807,6 +807,22 @@ class NavigableString(unicode, PageElement):
     @name.setter
     def name(self, name):
         raise AttributeError("A NavigableString cannot be given a name.")
+
+    @property
+    def start_position(self):
+        return self._start_position if hasattr(self, "_start_position") else None
+
+    @start_position.setter
+    def start_position(self, start_position):
+        self._start_position = start_position
+
+    @property
+    def end_position(self):
+        return self._end_position if hasattr(self, "_end_position") else None
+
+    @end_position.setter
+    def end_position(self, end_position):
+        self._end_position = end_position
 
 class PreformattedString(NavigableString):
     """A NavigableString not subject to the normal formatting rules.

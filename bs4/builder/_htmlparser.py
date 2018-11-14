@@ -12,7 +12,7 @@ from HTMLParser import HTMLParser
 
 try:
     from HTMLParser import HTMLParseError
-except ImportError, e:
+except ImportError as e:
     # HTMLParseError is removed in Python 3.5. Since it can never be
     # thrown in 3.5, we can just define our own class as a placeholder.
     class HTMLParseError(Exception):
@@ -65,6 +65,22 @@ class BeautifulSoupHTMLParser(HTMLParser):
         # order. It's a list of closing tags we've already handled and
         # will ignore, assuming they ever show up.
         self.already_closed_empty_element = []
+
+    def save_line_lengths(self):
+        """Save the lengths of all the lines in the parser's raw data."""
+        self.line_lengths = [len(line) for line in self.rawdata.splitlines(True)]
+
+    def calculate_rawdata_position(self):
+        """
+        Calculate the rawdata position of the parser by crossreferencing
+        the parser's current line & column indices with the stored line lenghts.
+        """
+        if not hasattr(self, "line_lengths"):
+            self.save_line_lengths()
+        l, c = self.getpos()
+        passed_line_lenghts = [self.line_lengths[i] for i in range(l - 1)] if l > 0 else []
+        rawdata_position = sum(passed_line_lenghts) + c
+        return rawdata_position
 
     def error(self, msg):
         """In Python 3, HTMLParser subclasses must implement error(), although this
@@ -125,12 +141,15 @@ class BeautifulSoupHTMLParser(HTMLParser):
             # print "ALREADY CLOSED", name
             self.already_closed_empty_element.remove(name)
         else:
-            self.soup.handle_endtag(name)
+            position = self.calculate_rawdata_position()
+            self.soup.handle_endtag(name, position=position)
 
     def handle_data(self, data):
-        self.soup.handle_data(data)
+        position = self.calculate_rawdata_position()
+        self.soup.handle_data(data, position=position)
 
     def handle_charref(self, name):
+        print(f"HANDLING CHARREF {name}")
         # XXX workaround for a bug in HTMLParser. Remove this once
         # it's fixed in all supported versions.
         # http://bugs.python.org/issue13633
@@ -219,6 +238,7 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
             kwargs['strict'] = False
         if CONSTRUCTOR_TAKES_CONVERT_CHARREFS:
             kwargs['convert_charrefs'] = False
+        self.parser = None
         self.parser_args = (args, kwargs)
 
     def prepare_markup(self, markup, user_specified_encoding=None,
@@ -241,16 +261,16 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
 
     def feed(self, markup):
         args, kwargs = self.parser_args
-        parser = BeautifulSoupHTMLParser(*args, **kwargs)
-        parser.soup = self.soup
+        self.parser = BeautifulSoupHTMLParser(*args, **kwargs)
+        self.parser.soup = self.soup
         try:
-            parser.feed(markup)
-            parser.close()
+            self.parser.feed(markup)
+            self.parser.close()
         except HTMLParseError, e:
             warnings.warn(RuntimeWarning(
                 "Python's built-in HTMLParser cannot parse the given document. This is not a bug in Beautiful Soup. The best solution is to install an external parser (lxml or html5lib), and use Beautiful Soup with that parser. See http://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser for help."))
             raise e
-        parser.already_closed_empty_element = []
+        self.parser.already_closed_empty_element = []
 
 # Patch 3.2 versions of HTMLParser earlier than 3.2.3 to use some
 # 3.2.3 code. This ensures they don't treat markup like <p></p> as a
