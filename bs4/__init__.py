@@ -123,6 +123,7 @@ class BeautifulSoup(Tag):
         Beautiful Soup 4 and there's no need to actually pass keyword
         arguments into the constructor.
         """
+
         if 'convertEntities' in kwargs:
             warnings.warn(
                 "BS4 does not respect the convertEntities argument to the "
@@ -389,10 +390,11 @@ class BeautifulSoup(Tag):
         if tag.name in self.builder.preserve_whitespace_tags:
             self.preserve_whitespace_tag_stack.append(tag)
 
-    def endData(self, containerClass=NavigableString, end_position=None):
-        if self.current_data and self.current_data_start_position:
+    def endData(self, containerClass=NavigableString):
+        if self.current_data:
             current_data = u''.join(self.current_data)
             start_position = self.current_data_start_position
+            end_position = self.builder.current_position()
             # If whitespace is not preserved, and this string contains
             # nothing but ASCII spaces, replace it with a single space
             # or newline.
@@ -530,19 +532,19 @@ class BeautifulSoup(Tag):
         self.pushTag(tag)
         return tag
 
-    def handle_endtag(self, name, nsprefix=None, position=None):
+    def handle_endtag(self, name, nsprefix=None):
         #print "End tag: " + name
-        self.endData(end_position=position)
+        self.endData()
         self._popToTag(name, nsprefix)
 
-    def handle_data(self, data, position=None):
-        if position:
-            self.current_data.append(data)
-            if not self.current_data_start_position:
-                self.current_data_start_position = position
+    def handle_data(self, data):
+        self.current_data.append(data)
+        if self.current_data_start_position == None:
+            self.current_data_start_position = self.builder.current_position()
+            print(f"[handle_data] new pos={self.current_data_start_position}, data start={repr(data)}")
         else:
-            self.current_data.append(data)
-            
+            print(f"[handle_data] old pos={self.current_data_start_position}, data addition={repr(data)}")
+
     def decode(self, pretty_print=False,
                eventual_encoding=DEFAULT_OUTPUT_ENCODING,
                formatter="minimal"):

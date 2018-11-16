@@ -70,7 +70,7 @@ class BeautifulSoupHTMLParser(HTMLParser):
         """Save the lengths of all the lines in the parser's raw data."""
         self.line_lengths = [len(line) for line in self.rawdata.splitlines(True)]
 
-    def calculate_rawdata_position(self):
+    def current_position(self):
         """
         Calculate the rawdata position of the parser by crossreferencing
         the parser's current line & column indices with the stored line lenghts.
@@ -79,8 +79,8 @@ class BeautifulSoupHTMLParser(HTMLParser):
             self.save_line_lengths()
         l, c = self.getpos()
         passed_line_lenghts = [self.line_lengths[i] for i in range(l - 1)] if l > 0 else []
-        rawdata_position = sum(passed_line_lenghts) + c
-        return rawdata_position
+        current_position = sum(passed_line_lenghts) + c
+        return current_position
 
     def error(self, msg):
         """In Python 3, HTMLParser subclasses must implement error(), although this
@@ -141,12 +141,10 @@ class BeautifulSoupHTMLParser(HTMLParser):
             # print "ALREADY CLOSED", name
             self.already_closed_empty_element.remove(name)
         else:
-            position = self.calculate_rawdata_position()
-            self.soup.handle_endtag(name, position=position)
+            self.soup.handle_endtag(name)
 
     def handle_data(self, data):
-        position = self.calculate_rawdata_position()
-        self.soup.handle_data(data, position=position)
+        self.soup.handle_data(data)
 
     def handle_charref(self, name):
         print(f"HANDLING CHARREF {name}")
@@ -240,6 +238,12 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
             kwargs['convert_charrefs'] = False
         self.parser = None
         self.parser_args = (args, kwargs)
+
+    def current_position(self):
+        if self.parser != None:
+            return self.parser.current_position()
+        else:
+            raise Exception("Parser not found in current_position call!")
 
     def prepare_markup(self, markup, user_specified_encoding=None,
                        document_declared_encoding=None, exclude_encodings=None):
