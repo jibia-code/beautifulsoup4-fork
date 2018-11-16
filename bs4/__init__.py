@@ -541,9 +541,6 @@ class BeautifulSoup(Tag):
         self.current_data.append(data)
         if self.current_data_start_position == None:
             self.current_data_start_position = self.builder.current_position()
-            print(f"[handle_data] new pos={self.current_data_start_position}, data start={repr(data)}")
-        else:
-            print(f"[handle_data] old pos={self.current_data_start_position}, data addition={repr(data)}")
 
     def decode(self, pretty_print=False,
                eventual_encoding=DEFAULT_OUTPUT_ENCODING,
