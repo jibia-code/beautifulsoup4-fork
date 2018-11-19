@@ -147,7 +147,6 @@ class BeautifulSoupHTMLParser(HTMLParser):
         self.soup.handle_data(data)
 
     def handle_charref(self, name):
-        print(f"HANDLING CHARREF {name}")
         # XXX workaround for a bug in HTMLParser. Remove this once
         # it's fixed in all supported versions.
         # http://bugs.python.org/issue13633
